@@ -271,7 +271,6 @@ public class LeaseTest {
             assertThat(leaseItem.getSequence(), is(BigInteger.ONE));
             assertThat(leaseItem.getApplicationTenancyPath(), is("/it/XXX/_"));
 
-
             // this assertion not true for unit tests, because we rely on JDO
             // to manage the bidir relationship for us.
             // assertThat(lease.getItems(), Matchers.contains(newItem));
@@ -821,6 +820,7 @@ public class LeaseTest {
             lease.setEndDate(endDate);
             lease.setTenancyEndDate(endDate);
 
+            assertNull(lease.getStartDate());
             assertNull(lease.getTenancyDuration());
         }
 
@@ -847,6 +847,11 @@ public class LeaseTest {
             lease.setTenancyEndDate(startDate);
 
             assertNull(lease.getTenancyDuration());
+        }
+
+        @Test
+        public void testValidateChangeTenancyDates() throws Exception {
+            assertThat(lease.validateChangeTenancyDates(new LocalDate(2015, 1, 1), new LocalDate(2014, 1, 1)), is("End date cannot be before start date"));
         }
     }
 

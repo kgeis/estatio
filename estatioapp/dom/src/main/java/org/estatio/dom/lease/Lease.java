@@ -366,6 +366,16 @@ public class Lease
         return getTenancyEndDate();
     }
 
+    public String validateChangeTenancyDates(
+            final LocalDate startDate,
+            final LocalDate endDate) {
+        if (startDate != null && !endDate.isBefore(startDate)) {
+            return null;
+        } else {
+            return "End date cannot be before start date";
+        }
+    }
+
     // //////////////////////////////////////
 
     @Programmatic
