@@ -70,6 +70,9 @@
             <ns2:collection id="terms">
                 <ns2:action id="newTerm"/>
             </ns2:collection>
+            <ns2:collection id="linkedItems">
+                <ns2:action id="createLink"/>
+            </ns2:collection>
         </col>
     </row>
 </grid>
