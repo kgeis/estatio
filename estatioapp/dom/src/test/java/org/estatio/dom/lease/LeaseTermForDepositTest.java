@@ -19,7 +19,6 @@
 package org.estatio.dom.lease;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,7 +54,12 @@ public class LeaseTermForDepositTest {
     @Mock
     Lease mockLease;
 
+    @Mock
+    LeaseItemLinkRepository mockLeaseItemLinkRepository;
+
     LeaseItem depositItem;
+    LeaseItem rentItem;
+    LeaseItem serviceChargeItem;
 
     LeaseTermForDeposit term;
 
@@ -65,7 +69,20 @@ public class LeaseTermForDepositTest {
     @Before
     public void setup() {
         startDate = new LocalDate(2013,1,1);
-        depositItem = new LeaseItem();
+        depositItem = new LeaseItem(){
+            @Override
+            public List<LeaseItem> findLinkedLeaseItemsByType(final LeaseItemType leaseItemType){
+                switch (leaseItemType){
+                    case RENT:
+                        return Arrays.asList(rentItem);
+
+                    case SERVICE_CHARGE:
+                        return Arrays.asList(serviceChargeItem);
+                }
+
+                return null;
+            }
+        };
         depositItem.setType(LeaseItemType.DEPOSIT);
         depositItem.setLease(mockLease);
         term = new LeaseTermForDeposit();
@@ -75,7 +92,6 @@ public class LeaseTermForDepositTest {
 
     public static class VerifyUntilTest extends LeaseTermForDepositTest {
 
-        private LeaseItem rentItem;
         private LeaseTermForIndexable leaseTermForIndexable;
         private Tax vat;
 
@@ -105,16 +121,17 @@ public class LeaseTermForDepositTest {
             };
             rentItem.setTax(vat);
 
+            serviceChargeItem = new LeaseItem() {
+                @Override
+                public BigDecimal valueForDate(LocalDate date) {
+                    return new BigDecimal("10000.00");
+                }
+            };
+
             context.checking(new Expectations() {
                 {
                     allowing(mockLease).getEffectiveInterval();
                     will(returnValue(new LocalDateInterval(new LocalDate(2013,01,01), new LocalDate(2014,01,01))));
-                    allowing(mockLease).findItemsOfType(LeaseItemType.RENT);
-                    will(returnValue(new ArrayList<LeaseItem>() {
-                        {
-                            add(rentItem);
-                        }
-                    }));
                 }
             });
         }
@@ -125,6 +142,7 @@ public class LeaseTermForDepositTest {
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.INDEXED_MGR_INCLUDING_VAT, "0.00", null, "60500.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.BASE_MGR_EXCLUDING_VAT, "0.00", null, "49750.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.BASE_MGR_INCLUDING_VAT, "0.00", null, "60197.50");
+            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.SERVICE_CHARGE, "0.00", null, "5000.00");
         }
 
         @Test
@@ -133,6 +151,7 @@ public class LeaseTermForDepositTest {
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.INDEXED_MGR_INCLUDING_VAT, "10000.00", null,  "50500.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.BASE_MGR_EXCLUDING_VAT, "10000.00", null,  "39750.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.BASE_MGR_INCLUDING_VAT, "10000.00", null,  "50197.50");
+            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.SERVICE_CHARGE, "1000.00", null,  "4000.00");
         }
 
         @Test
@@ -141,6 +160,7 @@ public class LeaseTermForDepositTest {
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M3, DepositType.INDEXED_MGR_INCLUDING_VAT, "0.00", null, "30250.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M3, DepositType.BASE_MGR_EXCLUDING_VAT, "0.00", null, "24875.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M3, DepositType.BASE_MGR_INCLUDING_VAT, "0.00", null, "30098.75");
+            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M3, DepositType.SERVICE_CHARGE, "0.00", null, "2500.00");
         }
 
         @Test
@@ -287,7 +307,12 @@ public class LeaseTermForDepositTest {
         @Before
         public void setup() {
             startDate = new LocalDate(2013,1,1);
-            depositItem = new LeaseItem();
+            depositItem = new LeaseItem(){
+                @Override
+                public List<LeaseItem> findLinkedLeaseItemsByType(final LeaseItemType leaseItemType){
+                    return Arrays.asList(rentItem);
+                }
+            };
             depositItem.setType(LeaseItemType.DEPOSIT);
             depositItem.setLease(mockLease);
             depositItem.setInvoicingFrequency(InvoicingFrequency.QUARTERLY_IN_ADVANCE);
@@ -320,12 +345,6 @@ public class LeaseTermForDepositTest {
                     will(returnValue(new LocalDateInterval(new LocalDate(2013,01,01), new LocalDate(2014,01,01))));
                     allowing(mockLease).getStartDate();
                     will(returnValue(new LocalDate(2013,01,01)));
-                    allowing(mockLease).findItemsOfType(LeaseItemType.RENT);
-                    will(returnValue(new ArrayList<LeaseItem>() {
-                        {
-                            add(rentItem);
-                        }
-                    }));
                 }
             });
         }
@@ -451,7 +470,7 @@ public class LeaseTermForDepositTest {
         @Before
         public void setup() {
             depositItemForServiceCharge = new LeaseItem(){
-                @Override public List<LeaseItemType> linkedLeaseItemTypes() {
+                @Override public List<LeaseItemType> findLinkedLeaseItemTypes() {
                     return Arrays.asList(
                             LeaseItemType.SERVICE_CHARGE
                             );
@@ -461,7 +480,7 @@ public class LeaseTermForDepositTest {
             depositTermForServiceCharge.setLeaseItem(depositItemForServiceCharge);
 
             depositItemForRent = new LeaseItem(){
-                @Override public List<LeaseItemType> linkedLeaseItemTypes() {
+                @Override public List<LeaseItemType> findLinkedLeaseItemTypes() {
                     return Arrays.asList(
                             LeaseItemType.RENT
                     );
@@ -471,7 +490,7 @@ public class LeaseTermForDepositTest {
             depositTermForRent.setLeaseItem(depositItemForRent);
 
             depositItemNoLinks = new LeaseItem(){
-                @Override public List<LeaseItemType> linkedLeaseItemTypes() {
+                @Override public List<LeaseItemType> findLinkedLeaseItemTypes() {
                     return Arrays.asList();
                 }
             };

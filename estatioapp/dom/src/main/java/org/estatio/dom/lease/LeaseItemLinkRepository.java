@@ -77,5 +77,24 @@ public class LeaseItemLinkRepository extends UdoDomainRepositoryAndFactory<Lease
 
     private static List<LeaseItemType> validChoices = Arrays.asList(LeaseItemType.RENT, LeaseItemType.SERVICE_CHARGE, LeaseItemType.SERVICE_CHARGE_INDEXABLE, LeaseItemType.SERVICE_CHARGE_BUDGETED);
 
+    @Programmatic
+    public List<LeaseItem> findLinkedItemsBySourceItem(final LeaseItem leaseItem) {
+        List<LeaseItem> result = new ArrayList<>();
+        for (LeaseItemLink link : findBySourceItem(leaseItem)){
+                result.add(link.getLinkedItem());
+        }
+        return result;
+    }
+
+    @Programmatic
+    public List<LeaseItem> findLinkedItemsBySourceItemAndType(final LeaseItem leaseItem, final LeaseItemType leaseItemType) {
+        List<LeaseItem> result = new ArrayList<>();
+        for (LeaseItem item : findLinkedItemsBySourceItem(leaseItem)){
+            if (item.getType()==leaseItemType){
+                result.add(item);
+            }
+        }
+        return result;
+    }
 }
 

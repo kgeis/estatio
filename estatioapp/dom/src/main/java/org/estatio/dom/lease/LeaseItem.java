@@ -677,7 +677,7 @@ public class LeaseItem
     // //////////////////////////////////////
 
     @Programmatic
-    public List<LeaseItemType> linkedLeaseItemTypes(){
+    public List<LeaseItemType> findLinkedLeaseItemTypes(){
         List<LeaseItemType> foundLinkedLeaseItemTypes = new ArrayList<>();
         List<LeaseItemLink> linkedItems = leaseItemLinkRepository.findBySourceItem(this);
         for (LeaseItemLink link : linkedItems){
@@ -686,6 +686,11 @@ public class LeaseItem
             }
         }
         return foundLinkedLeaseItemTypes;
+    }
+
+    @Programmatic
+    public List<LeaseItem> findLinkedLeaseItemsByType(final LeaseItemType leaseItemType){
+        return leaseItemLinkRepository.findLinkedItemsBySourceItemAndType(this, leaseItemType);
     }
 
     @Inject

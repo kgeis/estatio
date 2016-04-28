@@ -15,7 +15,7 @@ public enum DepositType {
         BigDecimal calculateDepositValue(final LeaseTermForDeposit term, final LocalDate date) {
 
             BigDecimal currentValue = BigDecimal.ZERO;
-            List<LeaseItem> rentItems = term.getLeaseItem().getLease().findItemsOfType(LeaseItemType.RENT);
+            List<LeaseItem> rentItems = term.getLeaseItem().findLinkedLeaseItemsByType(LeaseItemType.RENT);
 
             for (LeaseItem rentItem : rentItems) {
                 Tax itemTax = rentItem.getTax();
@@ -36,12 +36,13 @@ public enum DepositType {
                     LeaseItemType.RENT);
         }
     },
+
     BASE_MGR_INCLUDING_VAT {
         @Override
         BigDecimal calculateDepositValue(final LeaseTermForDeposit term, final LocalDate date) {
 
             BigDecimal currentValue = BigDecimal.ZERO;
-            List<LeaseItem> rentItems = term.getLeaseItem().getLease().findItemsOfType(LeaseItemType.RENT);
+            List<LeaseItem> rentItems = term.getLeaseItem().findLinkedLeaseItemsByType(LeaseItemType.RENT);
 
             for (LeaseItem rentItem : rentItems) {
                 LeaseTermForIndexable termForIndexable = (LeaseTermForIndexable)rentItem.currentTerm(date.minusDays(1));
@@ -63,12 +64,13 @@ public enum DepositType {
                     LeaseItemType.RENT);
         }
     },
+
     INDEXED_MGR_EXCLUDING_VAT {
         @Override
         BigDecimal calculateDepositValue(final LeaseTermForDeposit term, final LocalDate date) {
 
             BigDecimal currentValue = BigDecimal.ZERO;
-            List<LeaseItem> rentItems = term.getLeaseItem().getLease().findItemsOfType(LeaseItemType.RENT);
+            List<LeaseItem> rentItems = term.getLeaseItem().findLinkedLeaseItemsByType(LeaseItemType.RENT);
 
             for (LeaseItem rentItem : rentItems) {
                 BigDecimal rentItemValueUntilVerificationDate = rentItem.valueForDate(date.minusDays(1));
@@ -85,12 +87,13 @@ public enum DepositType {
                     LeaseItemType.RENT);
         }
     },
+
     BASE_MGR_EXCLUDING_VAT {
         @Override
         BigDecimal calculateDepositValue(final LeaseTermForDeposit term, final LocalDate date) {
 
             BigDecimal currentValue = BigDecimal.ZERO;
-            List<LeaseItem> rentItems = term.getLeaseItem().getLease().findItemsOfType(LeaseItemType.RENT);
+            List<LeaseItem> rentItems = term.getLeaseItem().findLinkedLeaseItemsByType(LeaseItemType.RENT);
 
             for (LeaseItem rentItem : rentItems) {
                 LeaseTermForIndexable termForIndexable = (LeaseTermForIndexable)rentItem.currentTerm(date.minusDays(1));
@@ -108,18 +111,28 @@ public enum DepositType {
                     LeaseItemType.RENT);
         }
     },
+
     SERVICE_CHARGE {
         @Override BigDecimal calculateDepositValue(final LeaseTermForDeposit term, final LocalDate date) {
-            return null;
+            BigDecimal currentValue = BigDecimal.ZERO;
+            List<LeaseItem> serviceChargeItems = term.getLeaseItem().findLinkedLeaseItemsByType(LeaseItemType.SERVICE_CHARGE);
+
+            for (LeaseItem serviceChargeItem : serviceChargeItems) {
+                BigDecimal serviceChargeValueUntilVerificationDate = serviceChargeItem.valueForDate(date.minusDays(1));
+                if (serviceChargeValueUntilVerificationDate != null) {
+                    currentValue = currentValue.add(serviceChargeValueUntilVerificationDate);
+                }
+            }
+
+            return currentValue;
         }
 
         @Override List<LeaseItemType> applicableTypes() {
             return Arrays.asList(
-                    LeaseItemType.SERVICE_CHARGE,
-                    LeaseItemType.SERVICE_CHARGE_INDEXABLE,
-                    LeaseItemType.SERVICE_CHARGE_BUDGETED);
+                    LeaseItemType.SERVICE_CHARGE);
         }
     },
+
     MANUAL {
         @Override
         BigDecimal calculateDepositValue(LeaseTermForDeposit term, LocalDate date) {
@@ -142,4 +155,5 @@ public enum DepositType {
     boolean appliesTo(final LeaseItemType leaseItemType){
         return applicableTypes().contains(leaseItemType);
     };
+
 }

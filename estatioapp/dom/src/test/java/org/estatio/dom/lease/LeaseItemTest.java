@@ -286,7 +286,7 @@ public class LeaseItemTest {
 
     }
 
-    public static class LinkedLeaseItemTypesTest extends LeaseItemTest {
+    public static class FindLinkedLeaseItemTypesTest extends LeaseItemTest {
 
         LeaseItemLinkRepository leaseItemLinkRepository;
         LeaseItem depositItem;
@@ -320,7 +320,7 @@ public class LeaseItemTest {
             depositItem.leaseItemLinkRepository = leaseItemLinkRepository;
 
             // then
-            Assertions.assertThat(depositItem.linkedLeaseItemTypes()).isEqualTo(Arrays.asList(LeaseItemType.RENT));
+            Assertions.assertThat(depositItem.findLinkedLeaseItemTypes()).isEqualTo(Arrays.asList(LeaseItemType.RENT));
 
         }
 
@@ -340,7 +340,7 @@ public class LeaseItemTest {
             depositItem.leaseItemLinkRepository = leaseItemLinkRepository;
 
             // then
-            Assertions.assertThat(depositItem.linkedLeaseItemTypes()).isEqualTo(Arrays.asList(LeaseItemType.SERVICE_CHARGE));
+            Assertions.assertThat(depositItem.findLinkedLeaseItemTypes()).isEqualTo(Arrays.asList(LeaseItemType.SERVICE_CHARGE));
 
         }
 
@@ -363,13 +363,67 @@ public class LeaseItemTest {
             depositItem.leaseItemLinkRepository = leaseItemLinkRepository;
 
             // then
-            Assertions.assertThat(depositItem.linkedLeaseItemTypes())
+            Assertions.assertThat(depositItem.findLinkedLeaseItemTypes())
                     .isEqualTo(Arrays.asList(
                             LeaseItemType.RENT,
                             LeaseItemType.SERVICE_CHARGE)
                     );
 
         }
+
+    }
+
+    public static class FindLinkedItemsByTypeTest extends LeaseItemTest {
+
+        LeaseItemLinkRepository leaseItemLinkRepository;
+        LeaseItem depositItem;
+        LeaseItem rentItem;
+        LeaseItem serviceChargeItem;
+        LeaseItem serviceChargeItem2;
+        LeaseItemLink leaseItemLink;
+        LeaseItemLink leaseItemLink2;
+        LeaseItemLink leaseItemLink3;
+
+        @Before
+        public void setup() {
+            depositItem = new LeaseItem();
+            rentItem = new LeaseItem();
+            rentItem.setType(LeaseItemType.RENT);
+            serviceChargeItem = new LeaseItem();
+            serviceChargeItem.setType(LeaseItemType.SERVICE_CHARGE);
+            serviceChargeItem2 = new LeaseItem();
+            serviceChargeItem2.setType(LeaseItemType.SERVICE_CHARGE);
+        }
+
+        @Test
+        public void testFindLinkedItemsByType() {
+
+            // when deposit item is linked to items rentItem, servichargeItem, and serviceChargeItem2
+            leaseItemLinkRepository = new LeaseItemLinkRepository(){
+                @Override
+                public List<LeaseItemLink> findBySourceItem(final LeaseItem sourceItem) {
+                    leaseItemLink = new LeaseItemLink();
+                    leaseItemLink.setSourceItem(depositItem);
+                    leaseItemLink.setLinkedItem(rentItem);
+                    leaseItemLink2 = new LeaseItemLink();
+                    leaseItemLink2.setSourceItem(depositItem);
+                    leaseItemLink2.setLinkedItem(serviceChargeItem);
+                    leaseItemLink3 = new LeaseItemLink();
+                    leaseItemLink3.setSourceItem(depositItem);
+                    leaseItemLink3.setLinkedItem(serviceChargeItem2);
+                    return Arrays.asList(leaseItemLink, leaseItemLink2, leaseItemLink3);
+                }
+            };
+            depositItem.leaseItemLinkRepository = leaseItemLinkRepository;
+
+            // then
+            Assertions.assertThat(depositItem.findLinkedLeaseItemsByType(LeaseItemType.RENT)).isEqualTo(Arrays.asList(rentItem));
+            Assertions.assertThat(depositItem.findLinkedLeaseItemsByType(LeaseItemType.SERVICE_CHARGE)).isEqualTo(Arrays.asList(serviceChargeItem, serviceChargeItem2));
+
+        }
+
+
+
 
     }
 

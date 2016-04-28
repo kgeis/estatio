@@ -33,6 +33,7 @@ public class LeaseItemAndTermsForOxfMiracl005Gb extends LeaseItemAndTermsAbstrac
         executionContext.executeChild(this, new LeaseItemAndLeaseTermForDiscountForOxfMiracl005Gb());
         executionContext.executeChild(this, new LeaseItemAndLeaseTermForPercentageForOxfMiracl005Gb());
         executionContext.executeChild(this, new LeaseItemAndLeaseTermForDepositForOxfMiracl005Gb());
+        executionContext.executeChild(this, new LeaseItemLinkForDepositForOxfMiracl005Gb());
     }
 
 }

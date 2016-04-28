@@ -95,7 +95,7 @@ public class LeaseTermForDeposit extends LeaseTerm {
 
     public List<DepositType> choices1ChangeParameters() {
         List<DepositType> result = new ArrayList<>();
-        List<LeaseItemType> foundLinkedLeaseItemTypes = getLeaseItem().linkedLeaseItemTypes();
+        List<LeaseItemType> foundLinkedLeaseItemTypes = getLeaseItem().findLinkedLeaseItemTypes();
         for (DepositType depositType : DepositType.values()){
             for (LeaseItemType leaseItemType : foundLinkedLeaseItemTypes){
                 if (depositType.appliesTo(leaseItemType)){

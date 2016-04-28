@@ -8,6 +8,9 @@ import org.junit.Test;
 
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 
+import org.estatio.dom.charge.Charges;
+import org.estatio.dom.invoice.PaymentMethod;
+import org.estatio.dom.lease.InvoicingFrequency;
 import org.estatio.dom.lease.Lease;
 import org.estatio.dom.lease.LeaseItem;
 import org.estatio.dom.lease.LeaseItemLink;
@@ -15,8 +18,9 @@ import org.estatio.dom.lease.LeaseItemLinkRepository;
 import org.estatio.dom.lease.LeaseItemType;
 import org.estatio.dom.lease.Leases;
 import org.estatio.fixture.EstatioBaseLineFixture;
-import org.estatio.fixture.lease.LeaseForOxfMiracl005Gb;
-import org.estatio.fixture.lease.LeaseItemAndTermsForOxfMiracl005Gb;
+import org.estatio.fixture.charge.ChargeRefData;
+import org.estatio.fixture.lease.LeaseForOxfMediaX002Gb;
+import org.estatio.fixture.lease.LeaseItemAndTermsForOxfMediax002Gb;
 import org.estatio.integtests.EstatioIntegrationTest;
 
 public class LeaseLinkRepositoryTest extends EstatioIntegrationTest {
@@ -27,7 +31,7 @@ public class LeaseLinkRepositoryTest extends EstatioIntegrationTest {
             @Override
             protected void execute(ExecutionContext executionContext) {
                 executionContext.executeChild(this, new EstatioBaseLineFixture());
-                executionContext.executeChild(this, new LeaseItemAndTermsForOxfMiracl005Gb());
+                executionContext.executeChild(this, new LeaseItemAndTermsForOxfMediax002Gb());
             }
         });
     }
@@ -36,13 +40,19 @@ public class LeaseLinkRepositoryTest extends EstatioIntegrationTest {
     Leases leases;
 
     @Inject
+    Charges charges;
+
+    @Inject
     LeaseItemLinkRepository leaseItemLinkRepository;
 
     Lease lease;
 
+    LeaseItem depositItem;
+
     @Before
     public void setUp() throws Exception {
-        lease = leases.findLeaseByReference(LeaseForOxfMiracl005Gb.REF);
+        lease = leases.findLeaseByReference(LeaseForOxfMediaX002Gb.REF);
+        depositItem = lease.newItem(LeaseItemType.DEPOSIT, charges.findByReference(ChargeRefData.GB_DEPOSIT), InvoicingFrequency.QUARTERLY_IN_ADVANCE, PaymentMethod.DIRECT_DEBIT, lease.getStartDate());
     }
 
     public static class NewLeaseItemLink extends LeaseLinkRepositoryTest{
@@ -50,7 +60,6 @@ public class LeaseLinkRepositoryTest extends EstatioIntegrationTest {
         @Test
         public void newLeaseItemLink() throws Exception {
             // given
-            LeaseItem depositItem = lease.findFirstItemOfType(LeaseItemType.DEPOSIT);
             LeaseItem rentItem = lease.findFirstItemOfType(LeaseItemType.RENT);
 
             // when
