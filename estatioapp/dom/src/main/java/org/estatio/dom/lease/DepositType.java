@@ -1,7 +1,7 @@
 package org.estatio.dom.lease;
 
-
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -30,6 +30,11 @@ public enum DepositType {
 
             return currentValue;
         }
+
+        @Override List<LeaseItemType> applicableTypes() {
+            return Arrays.asList(
+                    LeaseItemType.RENT);
+        }
     },
     BASE_MGR_INCLUDING_VAT {
         @Override
@@ -52,6 +57,11 @@ public enum DepositType {
 
             return currentValue;
         }
+
+        @Override List<LeaseItemType> applicableTypes() {
+            return Arrays.asList(
+                    LeaseItemType.RENT);
+        }
     },
     INDEXED_MGR_EXCLUDING_VAT {
         @Override
@@ -68,6 +78,11 @@ public enum DepositType {
             }
 
             return currentValue;
+        }
+
+        @Override List<LeaseItemType> applicableTypes() {
+            return Arrays.asList(
+                    LeaseItemType.RENT);
         }
     },
     BASE_MGR_EXCLUDING_VAT {
@@ -87,14 +102,44 @@ public enum DepositType {
 
             return currentValue;
         }
+
+        @Override List<LeaseItemType> applicableTypes() {
+            return Arrays.asList(
+                    LeaseItemType.RENT);
+        }
+    },
+    SERVICE_CHARGE {
+        @Override BigDecimal calculateDepositValue(final LeaseTermForDeposit term, final LocalDate date) {
+            return null;
+        }
+
+        @Override List<LeaseItemType> applicableTypes() {
+            return Arrays.asList(
+                    LeaseItemType.SERVICE_CHARGE,
+                    LeaseItemType.SERVICE_CHARGE_INDEXABLE,
+                    LeaseItemType.SERVICE_CHARGE_BUDGETED);
+        }
     },
     MANUAL {
         @Override
         BigDecimal calculateDepositValue(LeaseTermForDeposit term, LocalDate date) {
             return BigDecimal.ZERO;
         }
+
+        @Override List<LeaseItemType> applicableTypes() {
+            return Arrays.asList(
+                    LeaseItemType.RENT,
+                    LeaseItemType.SERVICE_CHARGE,
+                    LeaseItemType.SERVICE_CHARGE_INDEXABLE,
+                    LeaseItemType.SERVICE_CHARGE_BUDGETED);
+        }
+
     };
 
     abstract BigDecimal calculateDepositValue(final LeaseTermForDeposit term, final LocalDate date);
+    abstract List<LeaseItemType> applicableTypes();
 
+    boolean appliesTo(final LeaseItemType leaseItemType){
+        return applicableTypes().contains(leaseItemType);
+    };
 }
