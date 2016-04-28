@@ -676,6 +676,21 @@ public class LeaseItem
 
     // //////////////////////////////////////
 
+    @Programmatic
+    public List<LeaseItemType> linkedLeaseItemTypes(){
+        List<LeaseItemType> foundLinkedLeaseItemTypes = new ArrayList<>();
+        List<LeaseItemLink> linkedItems = leaseItemLinkRepository.findBySourceItem(this);
+        for (LeaseItemLink link : linkedItems){
+            if (!foundLinkedLeaseItemTypes.contains(link.getLinkedItem().getType())){
+                foundLinkedLeaseItemTypes.add(link.getLinkedItem().getType());
+            }
+        }
+        return foundLinkedLeaseItemTypes;
+    }
+
+    @Inject
+    LeaseItemLinkRepository leaseItemLinkRepository;
+
     @Inject
     private Charges charges;
 

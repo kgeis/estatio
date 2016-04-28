@@ -21,8 +21,10 @@ package org.estatio.dom.lease;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
 import org.joda.time.LocalDate;
@@ -280,6 +282,93 @@ public class LeaseItemTest {
             li.setType(type);
             li.setSequence(sequence!=null? BigInteger.valueOf(sequence.longValue()):null);
             return li;
+        }
+
+    }
+
+    public static class LinkedLeaseItemTypesTest extends LeaseItemTest {
+
+        LeaseItemLinkRepository leaseItemLinkRepository;
+        LeaseItem depositItem;
+        LeaseItem rentItem;
+        LeaseItem serviceChargeItem;
+        LeaseItemLink leaseItemLink;
+        LeaseItemLink leaseItemLink2;
+
+        @Before
+        public void setup() {
+            depositItem = new LeaseItem();
+            rentItem = new LeaseItem();
+            rentItem.setType(LeaseItemType.RENT);
+            serviceChargeItem = new LeaseItem();
+            serviceChargeItem.setType(LeaseItemType.SERVICE_CHARGE);
+        }
+
+        @Test
+        public void testLinkedLeaseItemTypeRent() {
+
+            // when rent item is linked
+            leaseItemLinkRepository = new LeaseItemLinkRepository(){
+                @Override
+                public List<LeaseItemLink> findBySourceItem(final LeaseItem sourceItem) {
+                    leaseItemLink = new LeaseItemLink();
+                    leaseItemLink.setSourceItem(depositItem);
+                    leaseItemLink.setLinkedItem(rentItem);
+                    return Arrays.asList(leaseItemLink);
+                }
+            };
+            depositItem.leaseItemLinkRepository = leaseItemLinkRepository;
+
+            // then
+            Assertions.assertThat(depositItem.linkedLeaseItemTypes()).isEqualTo(Arrays.asList(LeaseItemType.RENT));
+
+        }
+
+        @Test
+        public void testLinkedLeaseItemTypeServiceCharge() {
+
+            // when service charge item is linked
+            leaseItemLinkRepository = new LeaseItemLinkRepository(){
+                @Override
+                public List<LeaseItemLink> findBySourceItem(final LeaseItem sourceItem) {
+                    leaseItemLink2 = new LeaseItemLink();
+                    leaseItemLink2.setSourceItem(depositItem);
+                    leaseItemLink2.setLinkedItem(serviceChargeItem);
+                    return Arrays.asList(leaseItemLink2);
+                }
+            };
+            depositItem.leaseItemLinkRepository = leaseItemLinkRepository;
+
+            // then
+            Assertions.assertThat(depositItem.linkedLeaseItemTypes()).isEqualTo(Arrays.asList(LeaseItemType.SERVICE_CHARGE));
+
+        }
+
+        @Test
+        public void testLinkedLeaseItemTypeServiceChargeAndLeaseItemForRent() {
+
+            // when both rent item and service charge item are linked
+            leaseItemLinkRepository = new LeaseItemLinkRepository(){
+                @Override
+                public List<LeaseItemLink> findBySourceItem(final LeaseItem sourceItem) {
+                    leaseItemLink = new LeaseItemLink();
+                    leaseItemLink.setSourceItem(depositItem);
+                    leaseItemLink.setLinkedItem(rentItem);
+                    leaseItemLink2 = new LeaseItemLink();
+                    leaseItemLink2.setSourceItem(depositItem);
+                    leaseItemLink2.setLinkedItem(serviceChargeItem);
+                    return Arrays.asList(leaseItemLink, leaseItemLink2);
+                }
+            };
+            depositItem.leaseItemLinkRepository = leaseItemLinkRepository;
+
+            // then
+            Assertions.assertThat(depositItem.linkedLeaseItemTypes())
+                    .isEqualTo(Arrays.asList(
+                            LeaseItemType.RENT,
+                            LeaseItemType.SERVICE_CHARGE)
+                    );
+
         }
 
     }

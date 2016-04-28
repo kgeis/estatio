@@ -20,8 +20,10 @@ package org.estatio.dom.lease;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
 import org.joda.time.LocalDate;
@@ -430,6 +432,75 @@ public class LeaseTermForDepositTest {
 
             // then
             assertThat(results.size(), is(0));
+        }
+
+    }
+
+    public static class ChoicesDepositTypeTest extends LeaseTermForDepositTest {
+
+        LeaseItem depositItemForServiceCharge;
+        LeaseTermForDeposit depositTermForServiceCharge;
+
+        LeaseItem depositItemForRent;
+        LeaseTermForDeposit depositTermForRent;
+
+        LeaseItem depositItemNoLinks;
+        LeaseTermForDeposit depositTermNoLinks;
+
+        @Before
+        public void setup() {
+            depositItemForServiceCharge = new LeaseItem(){
+                @Override public List<LeaseItemType> linkedLeaseItemTypes() {
+                    return Arrays.asList(
+                            LeaseItemType.SERVICE_CHARGE
+                            );
+                }
+            };
+            depositTermForServiceCharge = new LeaseTermForDeposit();
+            depositTermForServiceCharge.setLeaseItem(depositItemForServiceCharge);
+
+            depositItemForRent = new LeaseItem(){
+                @Override public List<LeaseItemType> linkedLeaseItemTypes() {
+                    return Arrays.asList(
+                            LeaseItemType.RENT
+                    );
+                }
+            };
+            depositTermForRent = new LeaseTermForDeposit();
+            depositTermForRent.setLeaseItem(depositItemForRent);
+
+            depositItemNoLinks = new LeaseItem(){
+                @Override public List<LeaseItemType> linkedLeaseItemTypes() {
+                    return Arrays.asList();
+                }
+            };
+            depositTermNoLinks = new LeaseTermForDeposit();
+            depositTermNoLinks.setLeaseItem(depositItemNoLinks);
+
+        }
+
+        @Test
+        public void test(){
+
+            // when
+            List<DepositType> resultForServiceCharge = depositTermForServiceCharge.choices1ChangeParameters();
+            List<DepositType> resultForRent = depositTermForRent.choices1ChangeParameters();
+            List<DepositType> resultNoLinkedItems = depositTermNoLinks.choices1ChangeParameters();
+
+            // then
+            Assertions.assertThat(resultForServiceCharge.size()).isEqualTo(2);
+            Assertions.assertThat(resultForServiceCharge).isEqualTo(Arrays.asList(DepositType.SERVICE_CHARGE, DepositType.MANUAL));
+            Assertions.assertThat(resultForRent.size()).isEqualTo(5);
+            Assertions.assertThat(resultForRent).
+                    isEqualTo(Arrays.asList(
+                            DepositType.INDEXED_MGR_INCLUDING_VAT,
+                            DepositType.BASE_MGR_INCLUDING_VAT,
+                            DepositType.INDEXED_MGR_EXCLUDING_VAT,
+                            DepositType.BASE_MGR_EXCLUDING_VAT,
+                            DepositType.MANUAL));
+
+            Assertions.assertThat(resultNoLinkedItems.size()).isEqualTo(0);
+
         }
 
     }

@@ -18,18 +18,24 @@
  */
 package org.estatio.dom.lease;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.isis.applib.annotation.Optionality;
-import org.apache.isis.applib.annotation.Parameter;
-import org.apache.isis.applib.annotation.Programmatic;
-import org.estatio.dom.JdoColumnScale;
-import org.joda.time.LocalDate;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.jdo.annotations.Column;
 import javax.jdo.annotations.InheritanceStrategy;
-import java.math.BigDecimal;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.joda.time.LocalDate;
+
+import org.apache.isis.applib.annotation.Optionality;
+import org.apache.isis.applib.annotation.Parameter;
+import org.apache.isis.applib.annotation.Programmatic;
+
+import org.estatio.dom.JdoColumnScale;
+
+import lombok.Getter;
+import lombok.Setter;
 
 @javax.jdo.annotations.PersistenceCapable
 @javax.jdo.annotations.Inheritance(strategy = InheritanceStrategy.SUPERCLASS_TABLE)
@@ -85,6 +91,21 @@ public class LeaseTermForDeposit extends LeaseTerm {
 
     public DepositType default1ChangeParameters() {
         return this.getDepositType();
+    }
+
+    public List<DepositType> choices1ChangeParameters() {
+        List<DepositType> result = new ArrayList<>();
+        List<LeaseItemType> foundLinkedLeaseItemTypes = getLeaseItem().linkedLeaseItemTypes();
+        for (DepositType depositType : DepositType.values()){
+            for (LeaseItemType leaseItemType : foundLinkedLeaseItemTypes){
+                if (depositType.appliesTo(leaseItemType)){
+                    if (!result.contains(depositType)){
+                        result.add(depositType);
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     public BigDecimal default2ChangeParameters() {
@@ -156,6 +177,7 @@ public class LeaseTermForDeposit extends LeaseTerm {
     public void doInitialize() {
         setCalculatedDepositValue(BigDecimal.ZERO);
         setExcludedAmount(BigDecimal.ZERO);
+        setDepositType(DepositType.MANUAL);
     }
 
     // //////////////////////////////////////
