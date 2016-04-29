@@ -18,22 +18,42 @@
  */
 package org.estatio.fixture.lease;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+import javax.inject.Inject;
+
+import org.joda.time.LocalDate;
+
+import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
+import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
+
 import org.estatio.dom.apptenancy.EstatioApplicationTenancyRepository;
 import org.estatio.dom.charge.Charge;
 import org.estatio.dom.charge.Charges;
 import org.estatio.dom.index.IndexRepository;
 import org.estatio.dom.invoice.PaymentMethod;
-import org.estatio.dom.lease.*;
+import org.estatio.dom.lease.DepositType;
+import org.estatio.dom.lease.Fraction;
+import org.estatio.dom.lease.InvoicingFrequency;
+import org.estatio.dom.lease.Lease;
+import org.estatio.dom.lease.LeaseItem;
+import org.estatio.dom.lease.LeaseItemStatus;
+import org.estatio.dom.lease.LeaseItemType;
+import org.estatio.dom.lease.LeaseTerm;
+import org.estatio.dom.lease.LeaseTermForDeposit;
+import org.estatio.dom.lease.LeaseTermForFixed;
+import org.estatio.dom.lease.LeaseTermForIndexable;
+import org.estatio.dom.lease.LeaseTermForPercentage;
+import org.estatio.dom.lease.LeaseTermForServiceCharge;
+import org.estatio.dom.lease.LeaseTermForTax;
+import org.estatio.dom.lease.LeaseTermForTurnoverRent;
+import org.estatio.dom.lease.LeaseTermFrequency;
+import org.estatio.dom.lease.LeaseTerms;
+import org.estatio.dom.lease.Leases;
 import org.estatio.dom.valuetypes.ApplicationTenancyLevel;
 import org.estatio.fixture.EstatioFixtureScript;
 import org.estatio.fixture.charge.ChargeRefData;
-import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
-import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
-import org.joda.time.LocalDate;
-
-import javax.inject.Inject;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 public abstract class LeaseItemAndTermsAbstract extends EstatioFixtureScript {
 
@@ -78,6 +98,27 @@ public abstract class LeaseItemAndTermsAbstract extends EstatioFixtureScript {
             li.setSequence(BigInteger.valueOf(1));
             executionContext.addResult(this, li);
         }
+        return li;
+    }
+
+    protected LeaseItem createLeaseItem(
+            final String leaseRef,
+            final String chargeReference,
+            final LeaseItemType leaseItemType,
+            final InvoicingFrequency invoicingFrequency,
+            final ExecutionContext executionContext) {
+
+        final Lease lease = leases.findLeaseByReference(leaseRef);
+        final ApplicationTenancy leaseItemApplicationTenancy = estatioApplicationTenancyRepository.findOrCreateTenancyFor(lease.getProperty(), lease.getPrimaryParty());
+        final Charge charge = charges.findByReference(chargeReference);
+
+        LeaseItem li = lease.newItem(leaseItemType, charge, invoicingFrequency, PaymentMethod.DIRECT_DEBIT, lease.getStartDate());
+        li.setType(leaseItemType);
+        li.setStatus(LeaseItemStatus.ACTIVE);
+        li.setEndDate(lease.getEndDate());
+        li.setSequence(BigInteger.valueOf(1));
+        executionContext.addResult(this, li);
+
         return li;
     }
 
@@ -133,7 +174,7 @@ public abstract class LeaseItemAndTermsAbstract extends EstatioFixtureScript {
 
     protected LeaseTerm createLeaseTermForDeposit(
             final String leaseRef,
-            final String leaseItemAtPath,
+            final String chargeReference,
             final LocalDate startDate,
             final LocalDate endDate,
             final Fraction fraction,
@@ -141,9 +182,9 @@ public abstract class LeaseItemAndTermsAbstract extends EstatioFixtureScript {
             final BigDecimal excludedAmount,
             final ExecutionContext executionContext) {
 
-        final LeaseItem leaseItem = findOrCreateLeaseItem(
-                leaseRef, leaseItemAtPath,
-                ChargeRefData.IT_DEPOSIT,
+        final LeaseItem leaseItem = createLeaseItem(
+                leaseRef,
+                chargeReference,
                 LeaseItemType.DEPOSIT,
                 InvoicingFrequency.QUARTERLY_IN_ADVANCE,
                 executionContext);

@@ -20,6 +20,7 @@ package org.estatio.fixture.lease;
 
 import javax.inject.Inject;
 
+import org.estatio.dom.charge.Charges;
 import org.estatio.dom.lease.LeaseItem;
 import org.estatio.dom.lease.LeaseItemLink;
 import org.estatio.dom.lease.LeaseItemLinkRepository;
@@ -40,5 +41,8 @@ public abstract class LeaseItemLinkAbstract extends EstatioFixtureScript {
 
     @Inject
     Leases leases;
+
+    @Inject
+    Charges charges;
 
 }

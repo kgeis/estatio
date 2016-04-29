@@ -33,6 +33,7 @@ import org.estatio.dom.invoice.Invoices;
 import org.estatio.dom.lease.DepositType;
 import org.estatio.dom.lease.Fraction;
 import org.estatio.dom.lease.Lease;
+import org.estatio.dom.lease.LeaseItem;
 import org.estatio.dom.lease.LeaseItemType;
 import org.estatio.dom.lease.LeaseTermForDeposit;
 import org.estatio.dom.lease.LeaseTermForIndexable;
@@ -93,7 +94,7 @@ public class LeaseTermsForDepositTest extends EstatioIntegrationTest {
 
             // then
             Assertions.assertThat(invoices.findByLease(topmodelLease).size()).isEqualTo(1);
-            Assertions.assertThat(invoices.findByLease(topmodelLease).get(0).getNetAmount()).isEqualTo(new BigDecimal("5000.00"));
+            Assertions.assertThat(invoices.findByLease(topmodelLease).get(0).getNetAmount()).isEqualTo(new BigDecimal("8000.00"));
 
 
             // and when (after couple of indexations of rent items)
@@ -105,7 +106,7 @@ public class LeaseTermsForDepositTest extends EstatioIntegrationTest {
 
             // then
             Assertions.assertThat(invoices.findByLease(topmodelLease).size()).isEqualTo(2);
-            Assertions.assertThat(invoices.findByLease(topmodelLease).get(0).getNetAmount()).isEqualTo(new BigDecimal("5000.00"));
+            Assertions.assertThat(invoices.findByLease(topmodelLease).get(0).getNetAmount()).isEqualTo(new BigDecimal("8000.00"));
             Assertions.assertThat(invoices.findByLease(topmodelLease).get(1).getNetAmount()).isEqualTo(new BigDecimal("652.51"));
 
             // and after approval of first invoice only the delta is invoiced
@@ -121,9 +122,12 @@ public class LeaseTermsForDepositTest extends EstatioIntegrationTest {
             Assertions.assertThat(invoices.findByLease(topmodelLease).size()).isEqualTo(2);
             Assertions.assertThat(invoices.findByLease(topmodelLease).get(1).getNetAmount()).isEqualTo(new BigDecimal("652.51"));
 
-            // and after terminating the invoiced deposit is credited
-            depositTerm = (LeaseTermForDeposit) topmodelLease.findFirstItemOfType(LeaseItemType.DEPOSIT).getTerms().first();
-            depositTerm.terminate(startDate.plusYears(5).minusDays(1));
+            // and after terminating both deposit items the invoiced deposits are credited
+            for (LeaseItem item : topmodelLease.findItemsOfType(LeaseItemType.DEPOSIT)){
+                LeaseTermForDeposit term = (LeaseTermForDeposit) item.getTerms().first();
+                term.terminate(startDate.plusYears(5).minusDays(1));
+            }
+
             invoices.findByLease(topmodelLease).get(1).approve();
             invoiceService.calculate(
                     topmodelLease,
@@ -133,7 +137,7 @@ public class LeaseTermsForDepositTest extends EstatioIntegrationTest {
 
             //then
             Assertions.assertThat(invoices.findByLease(topmodelLease).size()).isEqualTo(3);
-            Assertions.assertThat(invoices.findByLease(topmodelLease).get(2).getNetAmount()).isEqualTo(new BigDecimal("-5652.51"));
+            Assertions.assertThat(invoices.findByLease(topmodelLease).get(2).getNetAmount()).isEqualTo(new BigDecimal("-8652.51"));
 
         }
 

@@ -18,9 +18,11 @@
  */
 package org.estatio.fixture.lease;
 
+import org.estatio.dom.charge.Charge;
 import org.estatio.dom.lease.Lease;
 import org.estatio.dom.lease.LeaseItem;
 import org.estatio.dom.lease.LeaseItemType;
+import org.estatio.fixture.charge.ChargeRefData;
 import org.estatio.fixture.security.tenancy.ApplicationTenancyForGbOxfDefault;
 
 public class LeaseItemLinkForDepositForOxfTopModel001Gb extends LeaseItemLinkAbstract {
@@ -42,13 +44,23 @@ public class LeaseItemLinkForDepositForOxfTopModel001Gb extends LeaseItemLinkAbs
         }
 
         // exec
+        final Charge charge = charges.findByReference(ChargeRefData.GB_DEPOSIT);
         final Lease lease = leases.findLeaseByReference(LEASE_REF);
-        final LeaseItem depositItem = lease.findFirstItemOfType(LeaseItemType.DEPOSIT);
+        final LeaseItem depositItem = lease.findFirstItemOfTypeAndCharge(LeaseItemType.DEPOSIT, charge);
         final LeaseItem rentItem = lease.findFirstItemOfType(LeaseItemType.RENT);
 
         createLeaseItemLink(
                 depositItem,
                 rentItem,
+                executionContext);
+
+        final Charge chargeDsc = charges.findByReference(ChargeRefData.GB_DEPOSIT_SC);
+        final LeaseItem depositItemSc = lease.findFirstItemOfTypeAndCharge(LeaseItemType.DEPOSIT, chargeDsc);
+        final LeaseItem scItem = lease.findFirstItemOfType(LeaseItemType.SERVICE_CHARGE);
+
+        createLeaseItemLink(
+                depositItemSc,
+                scItem,
                 executionContext);
     }
 }

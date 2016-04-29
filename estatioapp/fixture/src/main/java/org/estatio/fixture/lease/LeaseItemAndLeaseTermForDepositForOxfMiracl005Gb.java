@@ -18,12 +18,13 @@
  */
 package org.estatio.fixture.lease;
 
+import java.math.BigDecimal;
+
 import org.estatio.dom.lease.DepositType;
 import org.estatio.dom.lease.Fraction;
 import org.estatio.dom.lease.Lease;
+import org.estatio.fixture.charge.ChargeRefData;
 import org.estatio.fixture.security.tenancy.ApplicationTenancyForGbOxfDefault;
-
-import java.math.BigDecimal;
 
 public class LeaseItemAndLeaseTermForDepositForOxfMiracl005Gb extends LeaseItemAndTermsAbstract {
 
@@ -47,11 +48,12 @@ public class LeaseItemAndLeaseTermForDepositForOxfMiracl005Gb extends LeaseItemA
 
         createLeaseTermForDeposit(
                 LEASE_REF,
-                AT_PATH,
-                lease.getStartDate(), null,
+                ChargeRefData.GB_DEPOSIT,
+                lease.getStartDate(),
+                null,
                 Fraction.M6,
                 DepositType.INDEXED_MGR_EXCLUDING_VAT,
-                new BigDecimal("5000.00"),
-                executionContext);
+                new BigDecimal("5000.00"), executionContext);
+
     }
 }
