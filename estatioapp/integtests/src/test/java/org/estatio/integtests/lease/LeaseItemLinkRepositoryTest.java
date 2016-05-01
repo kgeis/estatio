@@ -23,7 +23,7 @@ import org.estatio.fixture.lease.LeaseForOxfMediaX002Gb;
 import org.estatio.fixture.lease.LeaseItemAndTermsForOxfMediax002Gb;
 import org.estatio.integtests.EstatioIntegrationTest;
 
-public class LeaseLinkRepositoryTest extends EstatioIntegrationTest {
+public class LeaseItemLinkRepositoryTest extends EstatioIntegrationTest {
 
     @Before
     public void setupData() {
@@ -55,23 +55,55 @@ public class LeaseLinkRepositoryTest extends EstatioIntegrationTest {
         depositItem = lease.newItem(LeaseItemType.DEPOSIT, charges.findByReference(ChargeRefData.GB_DEPOSIT), InvoicingFrequency.QUARTERLY_IN_ADVANCE, PaymentMethod.DIRECT_DEBIT, lease.getStartDate());
     }
 
-    public static class NewLeaseItemLink extends LeaseLinkRepositoryTest{
+    public static class NewLeaseItemItemLink extends LeaseItemLinkRepositoryTest {
 
         @Test
         public void newLeaseItemLink() throws Exception {
             // given
             LeaseItem rentItem = lease.findFirstItemOfType(LeaseItemType.RENT);
+            Assertions.assertThat(leaseItemLinkRepository.allLeaseItemLinks().size()).isEqualTo(0);
 
             // when
-            LeaseItemLink newLink = leaseItemLinkRepository.newLeaseItemLink(depositItem, rentItem);
+            LeaseItemLink newLink = leaseItemLinkRepository.createLeaseItemLink(depositItem, rentItem);
 
             // then
             Assertions.assertThat(newLink.getSourceItem()).isEqualTo(depositItem);
             Assertions.assertThat(newLink.getLinkedItem()).isEqualTo(rentItem);
 
-            // finder works
+            // finders work
             Assertions.assertThat(leaseItemLinkRepository.findBySourceItem(depositItem).size()).isEqualTo(1);
             Assertions.assertThat(leaseItemLinkRepository.findBySourceItem(depositItem).get(0)).isEqualTo(newLink);
+
+            Assertions.assertThat(leaseItemLinkRepository.findBySourceItemAndLinkedItem(depositItem, rentItem)).isEqualTo(newLink);
+
+            Assertions.assertThat(leaseItemLinkRepository.allLeaseItemLinks().size()).isEqualTo(1);
+        }
+
+        @Test
+        public void findOrCreateLeaseItemLinkIsIdempotent() throws Exception {
+
+            // given
+            LeaseItem depositItem = lease.newItem(LeaseItemType.DEPOSIT, charges.findByReference(ChargeRefData.GB_DEPOSIT_SC), InvoicingFrequency.QUARTERLY_IN_ADVANCE, PaymentMethod.DIRECT_DEBIT, lease.getStartDate());
+            LeaseItem serviceChargeItem = lease.findFirstItemOfType(LeaseItemType.SERVICE_CHARGE);
+            Assertions.assertThat(leaseItemLinkRepository.findBySourceItem(depositItem).size()).isEqualTo(0);
+            Assertions.assertThat(leaseItemLinkRepository.allLeaseItemLinks().size()).isEqualTo(0);
+
+            // when
+            LeaseItemLink newLink = leaseItemLinkRepository.findOrCreateLeaseItemLink(depositItem, serviceChargeItem);
+
+            // then
+            Assertions.assertThat(leaseItemLinkRepository.findBySourceItem(depositItem).size()).isEqualTo(1);
+            Assertions.assertThat(leaseItemLinkRepository.allLeaseItemLinks().size()).isEqualTo(1);
+            Assertions.assertThat(leaseItemLinkRepository.findBySourceItem(depositItem).get(0)).isEqualTo(newLink);
+
+            // when called again
+            LeaseItemLink secondLink = leaseItemLinkRepository.findOrCreateLeaseItemLink(depositItem, serviceChargeItem);
+
+            // then
+            Assertions.assertThat(leaseItemLinkRepository.findBySourceItem(depositItem).size()).isEqualTo(1);
+            Assertions.assertThat(leaseItemLinkRepository.allLeaseItemLinks().size()).isEqualTo(1);
+            Assertions.assertThat(secondLink.equals(newLink)).isEqualTo(true);
+
 
         }
 

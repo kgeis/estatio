@@ -4,6 +4,7 @@ package org.estatio.dom.lease;
 import javax.jdo.annotations.Column;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
+import javax.jdo.annotations.Unique;
 
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.PropertyLayout;
@@ -27,8 +28,15 @@ import lombok.Setter;
                 name = "findBySourceItem", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.dom.lease.LeaseItemLink "
-                        + "WHERE sourceItem == :sourceItem")
+                        + "WHERE sourceItem == :sourceItem"),
+        @javax.jdo.annotations.Query(
+                name = "findBySourceItemAndLinkedItem", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.estatio.dom.lease.LeaseItemLink "
+                        + "WHERE sourceItem == :sourceItem && "
+                        + "linkedItem == :linkedItem")
 })
+@Unique(name = "LeaseItemLink_sourceItem_linkedItem_UNQ", members = { "sourceItem", "linkedItem" })
 @DomainObject()
 public class LeaseItemLink
         extends EstatioDomainObject<LeaseItemLink>

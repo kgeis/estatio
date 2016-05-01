@@ -30,7 +30,7 @@ import org.estatio.fixture.EstatioFixtureScript;
 public abstract class LeaseItemLinkAbstract extends EstatioFixtureScript {
 
     protected LeaseItemLink createLeaseItemLink(final LeaseItem sourceItem, final LeaseItem linkedItem, final ExecutionContext executionContext){
-        LeaseItemLink link = leaseItemLinkRepository.newLeaseItemLink(sourceItem, linkedItem);
+        LeaseItemLink link = leaseItemLinkRepository.createLeaseItemLink(sourceItem, linkedItem);
         return executionContext.addResult(this, link);
     }
 

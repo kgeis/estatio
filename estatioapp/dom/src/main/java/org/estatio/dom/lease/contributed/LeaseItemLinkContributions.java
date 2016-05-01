@@ -24,7 +24,7 @@ public class LeaseItemLinkContributions {
 
     @ActionLayout(contributed = Contributed.AS_ACTION)
     public LeaseItem createLink(final LeaseItem sourceItem, final LeaseItem linkedItem){
-        leaseItemLinkRepository.newLeaseItemLink(sourceItem, linkedItem);
+        leaseItemLinkRepository.createLeaseItemLink(sourceItem, linkedItem);
         return sourceItem;
     }
 

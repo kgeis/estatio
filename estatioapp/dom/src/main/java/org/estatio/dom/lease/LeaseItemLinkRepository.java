@@ -23,7 +23,7 @@ public class LeaseItemLinkRepository extends UdoDomainRepositoryAndFactory<Lease
     // //////////////////////////////////////
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
-    public LeaseItemLink newLeaseItemLink(
+    public LeaseItemLink createLeaseItemLink(
             final LeaseItem sourceItem,
             final LeaseItem linkedItem) {
         LeaseItemLink leaseItemLink = newTransientInstance();
@@ -95,6 +95,25 @@ public class LeaseItemLinkRepository extends UdoDomainRepositoryAndFactory<Lease
             }
         }
         return result;
+    }
+
+    @Programmatic
+    public LeaseItemLink findBySourceItemAndLinkedItem(final LeaseItem sourceItem, final LeaseItem linkedItem) {
+        return uniqueMatch("findBySourceItemAndLinkedItem", "sourceItem", sourceItem, "linkedItem", linkedItem);
+    }
+
+    @Programmatic
+    public LeaseItemLink findOrCreateLeaseItemLink(final LeaseItem sourceItem, final LeaseItem linkedItem) {
+        LeaseItemLink link = findBySourceItemAndLinkedItem(sourceItem, linkedItem);
+        if (link == null) {
+            link = createLeaseItemLink(sourceItem, linkedItem);
+        }
+        return link;
+    }
+
+    @Programmatic
+    public List<LeaseItemLink> allLeaseItemLinks(){
+        return allInstances(LeaseItemLink.class);
     }
 }
 
