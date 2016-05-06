@@ -260,7 +260,7 @@ public class InvoicesTest extends EstatioIntegrationTest {
             });
         }
 
-        private static String runId = "2014-02-16T02:30:03.156 - OXF - [OXF-TOPMODEL-001] - [RENT, SERVICE_CHARGE, TURNOVER_RENT, TAX] - 2012-01-01 - 2012-01-01/2012-01-02";
+        private static String runId = "2014-02-16T02:30:03.156 - OXF - [OXF-TOPMODEL-001] - [RENT, SERVICE_CHARGE_FRANCE, TURNOVER_RENT, TAX] - 2012-01-01 - 2012-01-01/2012-01-02";
 
         private Property propertyKal;
 
@@ -358,7 +358,7 @@ public class InvoicesTest extends EstatioIntegrationTest {
             });
         }
 
-        private static String runId = "2014-02-16T02:30:03.156 - OXF - [OXF-TOPMODEL-001] - [RENT, SERVICE_CHARGE, TURNOVER_RENT, TAX] - 2012-01-01 - 2012-01-01/2012-01-02";
+        private static String runId = "2014-02-16T02:30:03.156 - OXF - [OXF-TOPMODEL-001] - [RENT, SERVICE_CHARGE_FRANCE, TURNOVER_RENT, TAX] - 2012-01-01 - 2012-01-01/2012-01-02";
 
         @Before
         public void setUp() throws Exception {

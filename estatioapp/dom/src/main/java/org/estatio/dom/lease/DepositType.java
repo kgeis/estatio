@@ -112,15 +112,18 @@ public enum DepositType {
         }
     },
 
-    SERVICE_CHARGE {
+    SERVICE_CHARGE_FRANCE {
         @Override BigDecimal calculateDepositValue(final LeaseTermForDeposit term, final LocalDate date) {
             BigDecimal currentValue = BigDecimal.ZERO;
             List<LeaseItem> serviceChargeItems = term.getLeaseItem().findLinkedLeaseItemsByType(LeaseItemType.SERVICE_CHARGE);
 
             for (LeaseItem serviceChargeItem : serviceChargeItems) {
-                BigDecimal serviceChargeValueUntilVerificationDate = serviceChargeItem.valueForDate(date.minusDays(1));
-                if (serviceChargeValueUntilVerificationDate != null) {
-                    currentValue = currentValue.add(serviceChargeValueUntilVerificationDate);
+                if (serviceChargeItem.getTerms().size() > 0) {
+                    LeaseTermForServiceCharge firstTerm = (LeaseTermForServiceCharge) serviceChargeItem.getTerms().first();
+                    BigDecimal budgetedValueOnFirstTerm = firstTerm.getBudgetedValue();
+                    if (budgetedValueOnFirstTerm != null) {
+                        currentValue = currentValue.add(budgetedValueOnFirstTerm);
+                    }
                 }
             }
 

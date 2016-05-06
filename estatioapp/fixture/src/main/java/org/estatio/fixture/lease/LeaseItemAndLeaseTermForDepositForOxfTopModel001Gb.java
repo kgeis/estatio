@@ -61,7 +61,7 @@ public class LeaseItemAndLeaseTermForDepositForOxfTopModel001Gb extends LeaseIte
                 lease.getStartDate(),
                 null,
                 Fraction.M6,
-                DepositType.SERVICE_CHARGE,
+                DepositType.SERVICE_CHARGE_FRANCE,
                 null, executionContext);
     }
 }

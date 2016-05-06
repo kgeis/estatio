@@ -30,7 +30,7 @@ import javax.inject.Inject;
 public class ChargeGroupRefData extends EstatioFixtureScript {
 
     public static final String REF_RENT = "RENT";
-    public static final String REF_SERVICE_CHARGE = "SERVICE_CHARGE";
+    public static final String REF_SERVICE_CHARGE = "SERVICE_CHARGE_FRANCE";
     public static final String REF_TURNOVER_RENT = "TURNOVER_RENT";
     public static final String REF_PERCENTAGE = "RENTAL_FEE";
     public static final String REF_DEPOSIT = "DEPOSIT";

@@ -19,8 +19,11 @@
 package org.estatio.dom.lease;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.assertj.core.api.Assertions;
 import org.jmock.Expectations;
@@ -123,8 +126,12 @@ public class LeaseTermForDepositTest {
 
             serviceChargeItem = new LeaseItem() {
                 @Override
-                public BigDecimal valueForDate(LocalDate date) {
-                    return new BigDecimal("10000.00");
+                public SortedSet<LeaseTerm> getTerms() {
+                    SortedSet<LeaseTerm> result = new TreeSet<>();
+                    LeaseTermForServiceCharge firstTerm = new LeaseTermForServiceCharge();
+                    firstTerm.setBudgetedValue(new BigDecimal("10000.00"));
+                    result.add(firstTerm);
+                    return result;
                 }
             };
 
@@ -142,7 +149,7 @@ public class LeaseTermForDepositTest {
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.INDEXED_MGR_INCLUDING_VAT, "0.00", null, "60500.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.BASE_MGR_EXCLUDING_VAT, "0.00", null, "49750.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.BASE_MGR_INCLUDING_VAT, "0.00", null, "60197.50");
-            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.SERVICE_CHARGE, "0.00", null, "5000.00");
+            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.SERVICE_CHARGE_FRANCE, "0.00", null, "5000.00");
         }
 
         @Test
@@ -151,7 +158,7 @@ public class LeaseTermForDepositTest {
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.INDEXED_MGR_INCLUDING_VAT, "10000.00", null,  "50500.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.BASE_MGR_EXCLUDING_VAT, "10000.00", null,  "39750.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.BASE_MGR_INCLUDING_VAT, "10000.00", null,  "50197.50");
-            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.SERVICE_CHARGE, "1000.00", null,  "4000.00");
+            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.SERVICE_CHARGE_FRANCE, "1000.00", null,  "4000.00");
         }
 
         @Test
@@ -160,7 +167,7 @@ public class LeaseTermForDepositTest {
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M3, DepositType.INDEXED_MGR_INCLUDING_VAT, "0.00", null, "30250.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M3, DepositType.BASE_MGR_EXCLUDING_VAT, "0.00", null, "24875.00");
             super.verifyUntil(new LocalDate(2013,01,01), Fraction.M3, DepositType.BASE_MGR_INCLUDING_VAT, "0.00", null, "30098.75");
-            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M3, DepositType.SERVICE_CHARGE, "0.00", null, "2500.00");
+            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M3, DepositType.SERVICE_CHARGE_FRANCE, "0.00", null, "2500.00");
         }
 
         @Test
@@ -509,7 +516,7 @@ public class LeaseTermForDepositTest {
 
             // then
             Assertions.assertThat(resultForServiceCharge.size()).isEqualTo(2);
-            Assertions.assertThat(resultForServiceCharge).isEqualTo(Arrays.asList(DepositType.SERVICE_CHARGE, DepositType.MANUAL));
+            Assertions.assertThat(resultForServiceCharge).isEqualTo(Arrays.asList(DepositType.SERVICE_CHARGE_FRANCE, DepositType.MANUAL));
             Assertions.assertThat(resultForRent.size()).isEqualTo(5);
             Assertions.assertThat(resultForRent).
                     isEqualTo(Arrays.asList(
@@ -520,6 +527,71 @@ public class LeaseTermForDepositTest {
                             DepositType.MANUAL));
 
             Assertions.assertThat(resultNoLinkedItems.size()).isEqualTo(0);
+
+        }
+
+    }
+
+    public static class DepositForServiceChargeFranceTest extends LeaseTermForDepositTest {
+
+        @Before
+        public void setup() {
+            super.setup();
+
+            serviceChargeItem = new LeaseItem() {
+                @Override
+                public SortedSet<LeaseTerm> getTerms() {
+                    SortedSet<LeaseTerm> result = new TreeSet<>();
+                    LeaseTermForServiceCharge firstTerm = new LeaseTermForServiceCharge();
+                    firstTerm.setBudgetedValue(new BigDecimal("10000.00"));
+                    firstTerm.setSequence(BigInteger.ONE);
+                    firstTerm.setStartDate(new LocalDate(2013,01,01));
+                    result.add(firstTerm);
+                    LeaseTermForServiceCharge secondTerm = new LeaseTermForServiceCharge();
+                    secondTerm.setBudgetedValue(new BigDecimal("12000.00"));
+                    secondTerm.setSequence(new BigInteger("2"));
+                    secondTerm.setStartDate(firstTerm.getStartDate().plusYears(1));
+                    result.add(secondTerm);
+                    return result;
+                }
+            };
+
+            context.checking(new Expectations() {
+                {
+                    allowing(mockLease).getEffectiveInterval();
+                    will(returnValue(new LocalDateInterval(new LocalDate(2013,01,01), new LocalDate(2014,01,01))));
+                }
+            });
+        }
+
+        @Test
+        public void onlyBudgetedValueFirstTermUsedInCalculation() {
+
+            // given
+            Assertions.assertThat(serviceChargeItem.getTerms().size()).isEqualTo(2);
+
+            // when
+            LeaseTermForServiceCharge firstTerm = (LeaseTermForServiceCharge) serviceChargeItem.getTerms().first();
+            Assertions.assertThat(firstTerm.getBudgetedValue()).isEqualTo(new BigDecimal("10000.00"));
+            LeaseTermForServiceCharge secondTerm = (LeaseTermForServiceCharge) serviceChargeItem.getTerms().last();
+            Assertions.assertThat(secondTerm.getBudgetedValue()).isEqualTo(new BigDecimal("12000.00"));
+
+            // then
+            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.SERVICE_CHARGE_FRANCE, "0.00", null, "5000.00");
+
+            // and when
+            firstTerm.setAuditedValue(new BigDecimal("12000.00"));
+
+            // then still
+            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.SERVICE_CHARGE_FRANCE, "0.00", null, "5000.00");
+            Assertions.assertThat(firstTerm.getAuditedValue()).isEqualTo(new BigDecimal("12000.00"));
+
+            // and when
+            secondTerm.setAuditedValue((new BigDecimal("13000.00")));
+
+            // then still
+            super.verifyUntil(new LocalDate(2013,01,01), Fraction.M6, DepositType.SERVICE_CHARGE_FRANCE, "0.00", null, "5000.00");
+            Assertions.assertThat(secondTerm.getAuditedValue()).isEqualTo(new BigDecimal("13000.00"));
 
         }
 
